@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferris Wheel Diagram</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        /* Add any necessary styles for your diagram here */
+        body {
+            font-family: "Calibri", sans-serif;
+        }        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        tr {
+         border-bottom: 1px solid #ddd;
+        }
+    </style>
+    <!--
+    Author: Prabu Arumugam
+    Date: October 16, 2023
+    Revision: Version 1.1
+    Description: This HTML file contains a Ferris wheel diagram created using D3.js. 
+    It can help with system context diagram: https://en.wikipedia.org/wiki/System_context_diagram
+    -->    
+</head>
+<body>
+    <h1 style="text-align: center;">Ferris Wheel</h1>  <!-- Page title -->
+    <div style="position: absolute; bottom: 0; right: 0; padding: 10px;">
+        <h3>Revision History</h3>
+        <table border="1" id="infoTable">
+            <tr>
+                <th>Author</th>
+                <td id="author">Prabu Arumugam</td>
+                <td><button onclick="editRow(this)">&#x270E;</button></td> <!-- Pencil icon -->
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td id="title">Ferris Wheel Diagram</td>
+                <td><button onclick="editRow(this)">&#x270E;</button></td>
+            </tr>
+            <tr>
+                <th>Revision</th>
+                <td id="revision">Version 1.1</td>
+                <td><button onclick="editRow(this)">&#x270E;</button></td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td id="date">October 16, 2023</td>
+                <td><button onclick="editRow(this)">&#x270E;</button></td>
+            </tr>
+        </table>
+    </div>
+    
+    <svg id="ferris-wheel" width="800" height="800"></svg>
+    
+    <script>
+    function editRow(buttonElement) {
+        const tdElement = buttonElement.parentElement.previousElementSibling;
+        const originalText = tdElement.innerText;
+        
+        // Replace the text with an input field
+        tdElement.innerHTML = `<input type='text' value='${originalText}' onblur='stopEditing(this, "${originalText}")'>`;
+        
+        // Focus the input field
+        const inputElement = tdElement.firstChild;
+        inputElement.focus();
+    }
+
+    function stopEditing(inputElement, originalText) {
+        const tdElement = inputElement.parentElement;
+        const newText = inputElement.value;
+
+        // Update the text in the table cell
+        tdElement.innerHTML = newText || originalText;
+    }
+
+
+
+        // Your D3.js code to create the Ferris wheel diagram with lines, dots, and text labels for connections
+        d3.csv("ferris-data.csv").then(function(data) {
+            // Set up the SVG container
+            const svg = d3.select("#ferris-wheel");
+            const width = +svg.attr("width");
+            const height = +svg.attr("height");
+
+            // Define the center of the Ferris wheel
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Define radii for the circles
+            const coreRadius = 15;
+            const connectorRadius = 100;
+            const cabinRadius = 280;
+
+            // Create the circles for the core, connector, and cabins
+            svg.append("circle")
+                .attr("cx", centerX)
+                .attr("cy", centerY)
+                .attr("r", coreRadius)
+                .style("fill", "blue"); // Change the color as needed
+
+            svg.append("text") // Add a text label for the core
+                .text("Core")
+                .attr("x", centerX)
+                .attr("y", centerY + coreRadius + 15) // Adjust the vertical position
+                .style("font-size", "12px")
+                .style("text-anchor", "middle"); // Center the text
+
+            svg.append("circle")
+                .attr("cx", centerX)
+                .attr("cy", centerY)
+                .attr("r", connectorRadius)
+                .style("fill", "none") // Set fill to "none" to make it transparent
+                .style("stroke", "gray"); // Set the stroke color as needed
+
+            svg.append("text") // Add a text label for the connector
+                .text("Connector")
+                .attr("x", centerX)
+                .attr("y", centerY + connectorRadius + 15) // Adjust the vertical position
+                .style("font-size", "12px")
+                .style("text-anchor", "middle"); // Center the text
+
+            // Create lines, dots, and text labels for connections from core to cabins
+            data.forEach(function(d, i) {
+                const angle = (i / data.length) * 2 * Math.PI;
+                const startX = centerX + coreRadius * Math.cos(angle);
+                const startY = centerY + coreRadius * Math.sin(angle);
+                const endX = centerX + cabinRadius * Math.cos(angle);
+                const endY = centerY + cabinRadius * Math.sin(angle);
+
+                // Create a line from the core to the cabin
+                svg.append("line")
+                    .attr("x1", startX)
+                    .attr("y1", startY)
+                    .attr("x2", endX)
+                    .attr("y2", endY)
+                    .style("stroke", "black"); // Adjust the line color as needed
+
+                // Add text labels for connection types (skip "Direct")
+                if (d["Connector-Type"] !== "Direct") {
+                    svg.append("text")
+                        .text(d["Connector-Type"]) // Use the data from the CSV for text labels
+                        .attr("x", (startX + endX) / 2)
+                        .attr("y", (startY + endY) / 2)
+                        .style("font-size", "10px")
+                        .style("text-anchor", "middle"); // Center the text
+
+                    // Create squares for connector connections on the middle concentric circle
+                    const connectorX = centerX + connectorRadius * Math.cos(angle);
+                    const connectorY = centerY + connectorRadius * Math.sin(angle);
+
+                    svg.append("rect")
+                        .attr("x", connectorX - 5) // Adjust the size and positioning of the square
+                        .attr("y", connectorY - 5)
+                        .attr("width", 10)
+                        .attr("height", 10)
+                        .style("fill", "green") // Change the color as needed
+                        .append("title")
+                        .text(d["Connector-Comments"]);  // Tooltip for connector squares   
+                }
+
+            // Create dots for each data point (cabins) for all connections
+            const cabinCircle = svg.append("circle")
+                .attr("cx", endX)
+                .attr("cy", endY)
+                .attr("r", 6)  // Adjust the radius of cabin dots as needed
+                .style("fill", "red");  // Change the color as needed
+            
+            // Append tooltip for cabins
+            cabinCircle.each(function() {
+                d3.select(this)
+                  .append("title")
+                  .text(d["Cabin-Comments"]);  // Tooltip for cabin circles
+            });
+
+            // Add text labels for cabin
+            svg.append("text")
+                .text(d["Cabins"])  // Display the cabin number or name
+                .attr("x", endX)
+                .attr("y", endY - 10)  // You can adjust this to place the label above, below, left, or right of the circle
+                .style("font-size", "10px")
+                .style("text-anchor", "middle");                                          
+
+            });
+        });
+    </script>
+</body>
+</html>
