@@ -1,0 +1,10 @@
+﻿Consumer,Consumer-Type,Publisher,Publisher-Type,Integration-Type,Lifecycle,Capability
+Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,Point-of-Sale-Services,Microservice-SpringBoot,REST API,Current,Point-of-Sale
+Point-of-Sale-Services,Microservice-SpringBoot,Point-of-Sale-Services,Microservice-SpringBoot,REST API,Current,Point-of-Sale
+Point-of-Sale-Services,Microservice-SpringBoot,GIS-AddressValidation,Thirdparty-Service,REST API,Current,Point-of-Sale
+Point-of-Sale-Services,Microservice-SpringBoot,Point-of-Sale-Persistence,RDBMS-Oracle,ORM-JDBC,Current,Point-of-Sale
+Analytical-Data-Store,Databricks,Point-of-Sale-Persistence,RDBMS-Oracle,CDC,Current,Point-of-Sale
+Analytical-Data-Store,Databricks,Customer-Data-Management,SaaS,REST API,Current,Point-of-Sale
+External-Payment-Gateway,Thirdparty-Service,Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,REST API,Current,Point-of-Sale
+External-Payment-Gateway,Thirdparty-Service,Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,SOAP Webservice,Retired,Point-of-Sale
+External-Payment-Gateway,Thirdparty-Service,Membership-Services,Microservice-SpringBoot,REST API,Current,Subscription
