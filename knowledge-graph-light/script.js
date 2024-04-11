@@ -145,14 +145,14 @@ function applyFilters(data) {
 
 function filterData(data, selectedLifecycle, selectedCapability) {
     return data.filter(d => {
-        const matchesLifecycle = (d['Lifecycle-Status'] === selectedLifecycle || selectedLifecycle === "All");
+        const matchesLifecycle = (d['Lifecycle-Status'] === selectedLifecycle || selectedLifecycle === "");
         let capabilityList;
         try {
             capabilityList = JSON.parse(d['Capabilities-Supported']);
         } catch {
             capabilityList = d['Capabilities-Supported'].split(',').map(c => c.trim());
         }
-        const matchesCapability = capabilityList.includes(selectedCapability) || selectedCapability === "All";
+        const matchesCapability = capabilityList.includes(selectedCapability) || selectedCapability === "";
         return matchesLifecycle && matchesCapability;
     });
 }
