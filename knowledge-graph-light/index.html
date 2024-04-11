@@ -10,14 +10,11 @@
 <body>
     <div class="filter-container">
         <!-- Add an "All" option in each filter dropdown -->
-        <select id="lifecyclestatusFilter">
-            <option value="All">All</option>
-            <!-- Other options here -->
-        </select>
-        <select id="capabilitiessupportedFilter">
-            <option value="All">All</option>
-            <!-- Other options here -->
-        </select>
+        <label for="lifecyclestatusFilter">Lifecycle:</label>
+        <select id="lifecyclestatusFilter"></select>
+        
+        <label for="capabilitiessupportedFilter">Capability:</label>
+        <select id="capabilitiessupportedFilter"></select>
 
         <!-- Add a reset button -->
         <button onclick="resetFilters()">Reset Filters</button>
