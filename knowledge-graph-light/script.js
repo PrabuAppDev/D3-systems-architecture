@@ -49,29 +49,85 @@ function processData(data) {
     nodes = Array.from(nodeMap.values());
 }
 
-function initializeFilters(data) {
-    // Populate Lifecycle filter
-    populateFilter('#lifecycleFilter', uniqueValues(data, 'Lifecycle'));
-    // Populate Capability filter
-    populateFilter('#capabilityFilter', uniqueValues(data, 'Capability'));
+function uniqueCapabilities(data) {
+    // Start with an empty set to hold unique values
+    const uniqueCapSet = new Set();
 
-    // Add event listeners
+    // Iterate over each row of data
+    data.forEach(row => {
+        // Check if the Capabilities field is not empty or undefined
+        if (row.Capabilities && row.Capabilities.trim() !== '') {
+            try {
+                // Attempt to parse the Capabilities field as JSON
+                const capabilitiesArray = JSON.parse(row.Capabilities);
+                // If it's an array, add each item to the set
+                if (Array.isArray(capabilitiesArray)) {
+                    capabilitiesArray.forEach(cap => uniqueCapSet.add(cap.trim()));
+                }
+            } catch (e) {
+                // If JSON parsing fails, assume it's a single item and add it to the set
+                uniqueCapSet.add(row.Capabilities.trim());
+            }
+        }
+    });
+
+    // Convert the set back into an array and return
+    return Array.from(uniqueCapSet);
+}
+
+// This function initializes filters and populates them with unique values from the data.
+function initializeFilters(data) {
+    // Handle Lifecycle which is straightforward
+    const lifecycleValues = uniqueValues(data, 'Lifecycle');
+    populateFilter('#lifecycleFilter', lifecycleValues);
+
+    // Handle Capabilities which may contain multiple, comma-delimited values
+    const capabilityValues = uniqueCapabilities(data);
+    populateFilter('#capabilityFilter', capabilityValues);
+
+    // Add event listeners for the filter dropdowns
     d3.select('#lifecycleFilter').on("change", () => applyFilters(data));
     d3.select('#capabilityFilter').on("change", () => applyFilters(data));
 }
 
 function uniqueValues(data, column) {
-    return [...new Set(data.map(d => d[column]))];
+    let allValues;
+    if(column !== 'Capabilities') {
+        allValues = data.map(d => d[column]);
+    } else {
+        // Flatten the array of arrays into a single array of values
+        allValues = data.flatMap(d => {
+            try {
+                // Parse the JSON-like string into an actual array
+                return JSON.parse(d[column]);
+            } catch (error) {
+                console.error('Error parsing Capabilities:', d[column]);
+                return []; // In case of an error, return an empty array
+            }
+        });
+    }
+    // Get unique values
+    const unique = [...new Set(allValues.map(v => v.trim()))];
+    console.log(unique); // Log the unique capabilities to the console
+    return unique;
 }
 
+
+// This function populates a filter dropdown with options from the values array.
 function populateFilter(selector, values) {
     let select = d3.select(selector);
-    select.selectAll('option')
-        .data(values)
+    select.selectAll('option').remove(); // Clear any existing options
+    select.selectAll('option') // This ensures an empty selection to bind the data properly
+        .data(values, function(d) { return d; }) // Binding data with a key function for tracking
         .enter()
         .append('option')
-        .text(d => d);
+        .attr('value', function(d) { return d; })
+        .text(function(d) { return d; });
+
+    // Debug: Log to check what is being appended
+    console.log('Options appended for selector:', selector, values);
 }
+
 
 function applyFilters(data) {
     // Get selected filter values
@@ -79,10 +135,12 @@ function applyFilters(data) {
     let selectedCapability = d3.select('#capabilityFilter').node().value;
 
     // Filter data
-    let filteredData = data.filter(d => 
-        (d.Lifecycle === selectedLifecycle || selectedLifecycle === "") &&
-        (d.Capability === selectedCapability || selectedCapability === "")
-    );
+    let filteredData = data.filter(d => {
+        const matchesLifecycle = (d.Lifecycle === selectedLifecycle || selectedLifecycle === "");
+        const capabilityList = d.Capability.split(',').map(c => c.trim());
+        const matchesCapability = capabilityList.includes(selectedCapability) || selectedCapability === "";
+        return matchesLifecycle && matchesCapability;
+    });
 
     // Re-process and redraw graph
     processData(filteredData);
@@ -105,8 +163,9 @@ function drawGraph() {
                     .data(links)
                     .enter().append("line")
                     .style("stroke", "#999")
-                    .style("stroke-width", "2px") // Thicker line for better clickability
-                    .on('click', edgeClicked);
+                    .style("stroke-width", "2px")
+                    .on('mouseover', edgeMouseover)
+                    .on('mouseout', mouseout); // Add mouseout event
 
     // Define the nodes
     const node = svg.append("g")
@@ -116,6 +175,8 @@ function drawGraph() {
                     .enter().append("circle")
                     .attr("r", 5)
                     .style("fill", "#69b3a2")
+                    .on('mouseover', nodeMouseover)
+                    .on('mouseout', mouseout) // Add mouseout event
                     .call(d3.drag()
                         .on("start", dragstarted)
                         .on("drag", dragged)
@@ -165,19 +226,28 @@ function drawGraph() {
         // d.fy = d.y;
     }
 
-    function edgeClicked(event, d) {
-        // Toggle edge thickness and highlight connected nodes
-        let isSelected = d3.select(this).classed("selected");
-        svg.selectAll("line").classed("selected", false).style("stroke-width", "2px");
-        d3.select(this).classed("selected", !isSelected).style("stroke-width", isSelected ? "2px" : "8px");
-
-        // Toggle tooltip
+    function nodeMouseover(event, d) {
         tooltip.transition()
-            .duration(200)
-            .style("opacity", .9);
+               .duration(200)
+               .style("opacity", .9);
+        tooltip.html(nodeTooltipHTML(d))
+               .style("left", (event.pageX) + "px")
+               .style("top", (event.pageY - 28) + "px");
+    }
+    
+    function edgeMouseover(event, d) {
+        tooltip.transition()
+               .duration(200)
+               .style("opacity", .9);
         tooltip.html(edgeTooltipHTML(d))
-            .style("left", (event.pageX) + "px")
-            .style("top", (event.pageY - 28) + "px");
+               .style("left", (event.pageX) + "px")
+               .style("top", (event.pageY - 28) + "px");
+    }
+    
+    function mouseout() {
+        tooltip.transition()
+               .duration(500)
+               .style("opacity", 0);
     }
     
     // Add tooltip to body
@@ -192,13 +262,19 @@ function drawGraph() {
         return `<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                     <tr><th>Producer-Type</th><th>Integration-Type</th><th>Lifecycle</th><th>Capability</th></tr>
                     <tr>
-                        <td>${d.source.id}</td>
+                        <td>${d.id}</td>
                         <td>${d.type}</td>
                         <td>${d.lifecycle}</td>
                         <td>${d.capability}</td>
                     </tr>
                 </table>`;
     }
+
+    function nodeTooltipHTML(d) {
+        // Here you need to fetch and format the data for node tooltip
+        // As an example, I'm just returning the node id.
+        return `<strong>${d.id}</strong>`;
+    }    
 }
 
 
