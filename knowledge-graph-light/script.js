@@ -50,6 +50,7 @@ function processData(data) {
 }
 
 function uniqueCapabilities(data, column) {
+    // Similar to the uniqueValues function but with added parsing for the stringified arrays
     const uniqueCapSet = new Set();
 
     data.forEach(row => {
@@ -69,10 +70,11 @@ function uniqueCapabilities(data, column) {
 }
 
 
+
 // This function initializes filters and populates them with unique values from the data.
 function initializeFilters(data) {
-    // Updated filterColumns array with the new column name 'Capabilities-Supported'
-    const filterColumns = ['Lifecycle', 'Capabilities-Supported'];
+    // Updated filterColumns array with the new column names
+    const filterColumns = ['Lifecycle-Status', 'Capabilities-Supported'];
 
     filterColumns.forEach(function(col) {
         // Choose the correct unique function based on the column
@@ -82,15 +84,17 @@ function initializeFilters(data) {
     });
 
     // Add event listeners for the filter dropdowns
-    d3.select('#lifecycleFilter').on("change", () => applyFilters(data));
-    // Make sure to use the correct ID after updating the header name
+    d3.select('#lifecyclestatusFilter').on("change", () => applyFilters(data));
     d3.select('#capabilitiessupportedFilter').on("change", () => applyFilters(data));
 }
 
 function uniqueValues(data, column) {
     let allValues;
-    if(column !== 'Capabilities') {
-        allValues = data.map(d => d[column]);
+    if(column !== 'Capabilities-Supported') {
+        allValues = data.map(d => {
+            // Ensure the value is a string before calling trim()
+            return (typeof d[column] === 'string') ? d[column].trim() : d[column];
+        });
     } else {
         // Flatten the array of arrays into a single array of values
         allValues = data.flatMap(d => {
@@ -98,14 +102,14 @@ function uniqueValues(data, column) {
                 // Parse the JSON-like string into an actual array
                 return JSON.parse(d[column]);
             } catch (error) {
-                console.error('Error parsing Capabilities:', d[column]);
+                console.error('Error parsing Capabilities-Supported:', d[column]);
                 return []; // In case of an error, return an empty array
             }
         });
     }
-    // Get unique values
-    const unique = [...new Set(allValues.map(v => v.trim()))];
-    console.log(unique); // Log the unique capabilities to the console
+    // Get unique values, filter out any falsy values like empty strings
+    const unique = [...new Set(allValues)].filter(Boolean);
+    console.log(`Unique values for ${column}:`, unique); // Log the unique values to the console
     return unique;
 }
 
@@ -125,16 +129,22 @@ function populateFilter(selector, values) {
     console.log('Options appended for selector:', selector, values);
 }
 
-
 function applyFilters(data) {
     // Get selected filter values
-    let selectedLifecycle = d3.select('#lifecycleFilter').node().value;
-    let selectedCapability = d3.select('#capabilityFilter').node().value;
+    let selectedLifecycle = d3.select('#lifecyclestatusFilter').node().value;
+    let selectedCapability = d3.select('#capabilitiessupportedFilter').node().value;
 
     // Filter data
     let filteredData = data.filter(d => {
-        const matchesLifecycle = (d.Lifecycle === selectedLifecycle || selectedLifecycle === "");
-        const capabilityList = d.Capability.split(',').map(c => c.trim());
+        const matchesLifecycle = (d['Lifecycle-Status'] === selectedLifecycle || selectedLifecycle === "");
+        // Splitting should be done based on whether the column data is an array or a single value
+        let capabilityList;
+        try {
+            // Parse the JSON array. If parsing fails, treat as a single string value.
+            capabilityList = JSON.parse(d['Capabilities-Supported']);
+        } catch {
+            capabilityList = d['Capabilities-Supported'].split(',').map(c => c.trim());
+        }
         const matchesCapability = capabilityList.includes(selectedCapability) || selectedCapability === "";
         return matchesLifecycle && matchesCapability;
     });
@@ -143,6 +153,7 @@ function applyFilters(data) {
     processData(filteredData);
     drawGraph();
 }
+
 
 // drawGraph function definition
 function drawGraph() {
