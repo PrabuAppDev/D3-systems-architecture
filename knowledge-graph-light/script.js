@@ -26,6 +26,7 @@ d3.csv("systems-components-inventory-tags.csv").then(data => {
 });
 
 function processData(data) {
+    console.log("Processing data:", data);  
     // Create a mapping of producers and consumers to nodes
     const nodeMap = new Map();
     data.forEach(d => {
@@ -134,36 +135,38 @@ function applyFilters(data) {
     let selectedLifecycle = d3.select('#lifecyclestatusFilter').node().value;
     let selectedCapability = d3.select('#capabilitiessupportedFilter').node().value;
 
-    // Filter data
-    let filteredData = data.filter(d => {
-        const matchesLifecycle = (d['Lifecycle-Status'] === selectedLifecycle || selectedLifecycle === "");
-        // Splitting should be done based on whether the column data is an array or a single value
-        let capabilityList;
-        try {
-            // Parse the JSON array. If parsing fails, treat as a single string value.
-            capabilityList = JSON.parse(d['Capabilities-Supported']);
-        } catch {
-            capabilityList = d['Capabilities-Supported'].split(',').map(c => c.trim());
-        }
-        const matchesCapability = capabilityList.includes(selectedCapability) || selectedCapability === "";
-        return matchesLifecycle && matchesCapability;
-    });
+    // Filter data based on selection
+    let filteredData = filterData(data, selectedLifecycle, selectedCapability);
 
     // Re-process and redraw graph
     processData(filteredData);
     drawGraph();
 }
 
+function filterData(data, selectedLifecycle, selectedCapability) {
+    return data.filter(d => {
+        const matchesLifecycle = (d['Lifecycle-Status'] === selectedLifecycle || selectedLifecycle === "All");
+        let capabilityList;
+        try {
+            capabilityList = JSON.parse(d['Capabilities-Supported']);
+        } catch {
+            capabilityList = d['Capabilities-Supported'].split(',').map(c => c.trim());
+        }
+        const matchesCapability = capabilityList.includes(selectedCapability) || selectedCapability === "All";
+        return matchesLifecycle && matchesCapability;
+    });
+}
 
 // drawGraph function definition
 function drawGraph() {
+    console.log("Drawing graph with nodes:", nodes, "and links:", links);
     // Clear the previous graph
     svg.selectAll("*").remove();
 
-    // Update simulation nodes and links
-    simulation.nodes(nodes).on("tick", ticked);
-    simulation.force("link").links(links);
-
+    // Rebind the simulation nodes and links with the filtered data
+    simulation.nodes(nodes).on("tick", ticked); // Make sure 'nodes' contains the filtered nodes
+    simulation.force("link").links(links); // Make sure 'links' contains the filtered links
+    
     // Define the lines (links)
     const link = svg.append("g")
                     .attr("class", "links")
@@ -282,7 +285,16 @@ function drawGraph() {
         // Here you need to fetch and format the data for node tooltip
         // As an example, I'm just returning the node id.
         return `<strong>${d.id}</strong>`;
-    }    
+    }
+
+    // Restart the simulation
+    simulation.alpha(1).restart();    
+
+}
+
+function resetFilters() {
+    // Reloads the current document
+    location.reload();
 }
 
 
