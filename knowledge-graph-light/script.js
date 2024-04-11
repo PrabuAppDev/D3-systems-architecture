@@ -16,7 +16,8 @@ const tooltip = d3.select("body").append("div")
     .style("opacity", 0);
 
 // Load the CSV file and initialize the graph
-d3.csv("systems-components-inventory.csv").then(data => {
+d3.csv("systems-components-inventory-tags.csv").then(data => {
+// d3.csv("systems-components-inventory.csv").then(data => {
     processData(data);
     initializeFilters(data);
     drawGraph();
@@ -25,11 +26,11 @@ d3.csv("systems-components-inventory.csv").then(data => {
 });
 
 function processData(data) {
-    // Create a mapping of publishers and consumers to nodes
+    // Create a mapping of producers and consumers to nodes
     const nodeMap = new Map();
     data.forEach(d => {
-        if (!nodeMap.has(d.Publisher)) {
-            nodeMap.set(d.Publisher, { id: d.Publisher });
+        if (!nodeMap.has(d.Producer)) {
+            nodeMap.set(d.Producer, { id: d.Producer });
         }
         if (!nodeMap.has(d.Consumer)) {
             nodeMap.set(d.Consumer, { id: d.Consumer });
@@ -37,7 +38,7 @@ function processData(data) {
 
         // Add link (edge) data
         links.push({
-            source: d.Publisher,
+            source: d.Producer,
             target: d.Consumer,
             type: d["Integration-Type"],
             lifecycle: d.Lifecycle, 
@@ -189,7 +190,7 @@ function drawGraph() {
     function edgeTooltipHTML(d) {
         // Construct HTML string for tooltip
         return `<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                    <tr><th>Publisher-Type</th><th>Integration-Type</th><th>Lifecycle</th><th>Capability</th></tr>
+                    <tr><th>Producer-Type</th><th>Integration-Type</th><th>Lifecycle</th><th>Capability</th></tr>
                     <tr>
                         <td>${d.source.id}</td>
                         <td>${d.type}</td>
