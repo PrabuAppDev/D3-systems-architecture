@@ -9,11 +9,18 @@
 </head>
 <body>
     <div class="filter-container">
-        <label for="lifecyclestatusFilter">Lifecycle:</label>
-        <select id="lifecyclestatusFilter"></select>
-        
-        <label for="capabilitiessupportedFilter">Capability:</label>
-        <select id="capabilitiessupportedFilter"></select>
+        <!-- Add an "All" option in each filter dropdown -->
+        <select id="lifecyclestatusFilter">
+            <option value="All">All</option>
+            <!-- Other options here -->
+        </select>
+        <select id="capabilitiessupportedFilter">
+            <option value="All">All</option>
+            <!-- Other options here -->
+        </select>
+
+        <!-- Add a reset button -->
+        <button onclick="resetFilters()">Reset Filters</button>
     </div>
     <svg id="graph" width="800" height="600"></svg>
     <script src="script.js"></script>
