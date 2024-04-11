@@ -1,0 +1,10 @@
+﻿Consumer,Consumer-Type,Consumer-Infrastructure,Producer,Producer-Type,Producer-Infrastructure,Integration-Type,Lifecycle,Capabilities
+Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,Cloud,Point-of-Sale-Services,Microservice-SpringBoot,Cloud,REST API,Current,"[""Point-of-Sale"",""CRM""]"
+Point-of-Sale-Services,Microservice-SpringBoot,Cloud,Point-of-Sale-Services,Microservice-SpringBoot,Cloud,REST API,Current,"[""Point-of-Sale"",""CRM""]"
+Point-of-Sale-Services,Microservice-SpringBoot,Cloud,GIS-AddressValidation,Thirdparty-Service,SaaS,REST API,Current,"[""Point-of-Sale"",""CRM""]"
+Point-of-Sale-Services,Microservice-SpringBoot,Cloud,Point-of-Sale-Persistence,RDBMS-Oracle,Datacenter-premises,ORM-JDBC,Current,"[""Point-of-Sale"",""CRM""]"
+Analytical-Data-Store,Databricks,Cloud,Point-of-Sale-Persistence,RDBMS-Oracle,Datacenter-premises,CDC,Current,"[""Point-of-Sale"",""CRM""]"
+Analytical-Data-Store,Databricks,Cloud,Customer-Data-Management,SaaS,SaaS,REST API,Current,"[""Point-of-Sale"",""CRM""]"
+External-Payment-Gateway,Thirdparty-Service,SaaS,Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,Cloud,REST API,Current,"[""Point-of-Sale"",""CRM""]"
+External-Payment-Gateway,Thirdparty-Service,SaaS,Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,Cloud,SOAP Webservice,Retired,"[""Point-of-Sale"",""CRM""]"
+External-Payment-Gateway,Thirdparty-Service,SaaS,Membership-Services,Microservice-SpringBoot,Cloud,REST API,Current,"[""CRM"", ""Subscription""]"
