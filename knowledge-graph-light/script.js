@@ -49,45 +49,42 @@ function processData(data) {
     nodes = Array.from(nodeMap.values());
 }
 
-function uniqueCapabilities(data) {
-    // Start with an empty set to hold unique values
+function uniqueCapabilities(data, column) {
     const uniqueCapSet = new Set();
 
-    // Iterate over each row of data
     data.forEach(row => {
-        // Check if the Capabilities field is not empty or undefined
-        if (row.Capabilities && row.Capabilities.trim() !== '') {
+        if (row[column] && row[column].trim() !== '') {
             try {
-                // Attempt to parse the Capabilities field as JSON
-                const capabilitiesArray = JSON.parse(row.Capabilities);
-                // If it's an array, add each item to the set
+                const capabilitiesArray = JSON.parse(row[column]);
                 if (Array.isArray(capabilitiesArray)) {
                     capabilitiesArray.forEach(cap => uniqueCapSet.add(cap.trim()));
                 }
             } catch (e) {
-                // If JSON parsing fails, assume it's a single item and add it to the set
-                uniqueCapSet.add(row.Capabilities.trim());
+                uniqueCapSet.add(row[column].trim());
             }
         }
     });
 
-    // Convert the set back into an array and return
     return Array.from(uniqueCapSet);
 }
 
+
 // This function initializes filters and populates them with unique values from the data.
 function initializeFilters(data) {
-    // Handle Lifecycle which is straightforward
-    const lifecycleValues = uniqueValues(data, 'Lifecycle');
-    populateFilter('#lifecycleFilter', lifecycleValues);
+    // Updated filterColumns array with the new column name 'Capabilities-Supported'
+    const filterColumns = ['Lifecycle', 'Capabilities-Supported'];
 
-    // Handle Capabilities which may contain multiple, comma-delimited values
-    const capabilityValues = uniqueCapabilities(data);
-    populateFilter('#capabilityFilter', capabilityValues);
+    filterColumns.forEach(function(col) {
+        // Choose the correct unique function based on the column
+        const unique = (col === 'Capabilities-Supported') ? uniqueCapabilities(data, col) : uniqueValues(data, col);
+        console.log('Unique values for', col, unique); // Debug: Log the unique values
+        populateFilter('#' + col.toLowerCase().replace(/-/g, '') + 'Filter', unique); // Populate the filter dropdown
+    });
 
     // Add event listeners for the filter dropdowns
     d3.select('#lifecycleFilter').on("change", () => applyFilters(data));
-    d3.select('#capabilityFilter').on("change", () => applyFilters(data));
+    // Make sure to use the correct ID after updating the header name
+    d3.select('#capabilitiessupportedFilter').on("change", () => applyFilters(data));
 }
 
 function uniqueValues(data, column) {

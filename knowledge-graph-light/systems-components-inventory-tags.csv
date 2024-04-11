@@ -1,4 +1,4 @@
-﻿Consumer,Consumer-Type,Consumer-Infrastructure,Producer,Producer-Type,Producer-Infrastructure,Integration-Type,Lifecycle,Capabilities
+﻿Consumer,Consumer-Type,Consumer-Infrastructure,Producer, ,Producer-Infrastructure,Integration-Type,Lifecycle,Capabilities-Supported
 Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,Cloud,Point-of-Sale-Services,Microservice-SpringBoot,Cloud,REST API,Current,"[""Point-of-Sale"",""CRM""]"
 Point-of-Sale-Services,Microservice-SpringBoot,Cloud,Point-of-Sale-Services,Microservice-SpringBoot,Cloud,REST API,Current,"[""Point-of-Sale"",""CRM""]"
 Point-of-Sale-Services,Microservice-SpringBoot,Cloud,GIS-AddressValidation,Thirdparty-Service,SaaS,REST API,Current,"[""Point-of-Sale"",""CRM""]"
