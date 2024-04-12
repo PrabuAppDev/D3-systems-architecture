@@ -27,6 +27,9 @@ d3.csv("systems-components-inventory-tags.csv").then(data => {
 
 function processData(data) {
     console.log("Processing data:", data);  
+    // Reset nodes and links before processing the new filtered data
+    nodes = [];
+    links = [];    
     // Create a mapping of producers and consumers to nodes
     const nodeMap = new Map();
     data.forEach(d => {
