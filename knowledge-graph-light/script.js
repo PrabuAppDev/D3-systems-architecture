@@ -39,11 +39,11 @@ function processData(data) {
 
         // Add link (edge) data
         links.push({
-            source: d.Producer,
-            target: d.Consumer,
-            type: d["Integration-Type"],
-            lifecycle: d.Lifecycle, 
-            capability: d.Capability
+            source: d['Producer'],
+            target: d['Consumer'], 
+            type: d['Integration-Type'],
+            lifecycle: d['Lifecycle-Status'], 
+            capability: d['Capabilities-Supported']
         });
     });
 
