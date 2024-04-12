@@ -31,10 +31,10 @@ function processData(data) {
     const nodeMap = new Map();
     data.forEach(d => {
         if (!nodeMap.has(d.Producer)) {
-            nodeMap.set(d.Producer, { id: d.Producer });
+            nodeMap.set(d.Producer, { id: d.Producer, type: d['Producer-Type'] });
         }
         if (!nodeMap.has(d.Consumer)) {
-            nodeMap.set(d.Consumer, { id: d.Consumer });
+            nodeMap.set(d.Consumer, { id: d.Consumer, type: d['Consumer-Type'] });
         }
 
         // Add link (edge) data
@@ -282,9 +282,15 @@ function drawGraph() {
     }
 
     function nodeTooltipHTML(d) {
-        // Here you need to fetch and format the data for node tooltip
-        // As an example, I'm just returning the node id.
-        return `<strong>${d.id}</strong>`;
+        console.log("inside nodeTooltipHTML()")
+        console.log(d);
+        return  `<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+        <tr><th>Component/System</th><th>Type</th></tr>
+        <tr>
+            <td>${d.id}</td>
+            <td>${d.type}</td>
+        </tr>
+    </table>`;
     }
 
     // Restart the simulation
