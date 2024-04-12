@@ -4,6 +4,11 @@ const svg = d3.select("#graph"),
       width = +svg.attr("width"),
       height = +svg.attr("height");
 
+const defaultIntegrationColors = {
+        "REST-API": "#00ff00", // Green
+        "ETL": "#ff0000", // Red
+        };
+
 // Define simulation with forces
 let simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(d => d.id).distance(50))
@@ -29,7 +34,10 @@ function processData(data) {
     console.log("Processing data:", data);  
     // Reset nodes and links before processing the new filtered data
     nodes = [];
-    links = [];    
+    links = []; 
+
+    let uniqueIntegrationTypes = uniqueValues(data, 'Integration-Type');
+    populateColorConfig(uniqueIntegrationTypes);       
     // Create a mapping of producers and consumers to nodes
     const nodeMap = new Map();
     data.forEach(d => {
@@ -294,6 +302,16 @@ function drawGraph() {
         </tr>
     </table>`;
     }
+    
+    // Update the style for links with the color for the integration type
+    link.style("stroke", d => {
+        console.log(`Applying color for type ${d.type}: `, getColorForType(d.type));
+        return getColorForType(d.type);
+    });
+
+    console.log("Color for REST-API: ", getColorForType("REST-API"));
+    // Change the node color from green to blue
+    node.style("fill", "#0000ff"); // Set the fill color to blue
 
     // Restart the simulation
     simulation.alpha(1).restart();    
@@ -305,5 +323,36 @@ function resetFilters() {
     location.reload();
 }
 
+// Function to populate the UI with color configuration options
+function populateColorConfig(integrationTypes) {
+    let configContainer = d3.select("#integrationTypeColorConfig");
+    configContainer.selectAll('div').remove(); // Clear any existing config
 
-// ... rest of the code, including any additional functions or event listeners ...
+    integrationTypes.forEach(type => {
+        let typeDiv = configContainer.append('div').attr('class', 'integration-type-config');
+
+        typeDiv.append('label')
+            .attr('for', 'color-' + type)
+            .text(type);
+
+        let defaultColor = defaultIntegrationColors[type] || "#000000"; // Fallback color if not predefined
+
+        typeDiv.append('input')
+            .attr('type', 'color')
+            .attr('id', 'color-' + type)
+            .attr('value', defaultColor)
+            .on('input', function() {
+                // When a color is picked, update the colors and redraw the graph
+                defaultIntegrationColors[type] = this.value;
+                drawGraph();
+            });
+    });
+}
+
+
+// Function to get the selected color for an integration type
+function getColorForType(type) {
+    let colorInput = d3.select('#color-' + type).node();
+    console.log('Looking for: ', '#color-' + type, ', Found: ', colorInput, ', Value: ', colorInput ? colorInput.value : 'none');
+    return colorInput ? colorInput.value : '#000000'; // Default color if not set
+}
