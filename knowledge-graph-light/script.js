@@ -271,9 +271,8 @@ function drawGraph() {
     function edgeTooltipHTML(d) {
         // Construct HTML string for tooltip
         return `<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                    <tr><th>Producer-Type</th><th>Integration-Type</th><th>Lifecycle</th><th>Capability</th></tr>
+                    <tr><th>Integration-Type</th><th>Lifecycle</th><th>Capability</th></tr>
                     <tr>
-                        <td>${d.id}</td>
                         <td>${d.type}</td>
                         <td>${d.lifecycle}</td>
                         <td>${d.capability}</td>
