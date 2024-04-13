@@ -6,7 +6,7 @@ const svg = d3.select("#graph"),
 
 const defaultIntegrationColors = {
         "REST-API": "#00ff00", // Green
-        "ETL": "#ff0000", // Red
+        "Batch": "#ff0000", // Red
         };
 
 // Define simulation with forces
@@ -329,23 +329,25 @@ function populateColorConfig(integrationTypes) {
     configContainer.selectAll('div').remove(); // Clear any existing config
 
     integrationTypes.forEach(type => {
-        let typeDiv = configContainer.append('div').attr('class', 'integration-type-config');
+        if (type === "REST-API" || type === "Batch") {
+            let typeDiv = configContainer.append('div').attr('class', 'integration-type-config');
 
-        typeDiv.append('label')
-            .attr('for', 'color-' + type)
-            .text(type);
+            typeDiv.append('label')
+                .attr('for', 'color-' + type)
+                .text(type);
 
-        let defaultColor = defaultIntegrationColors[type] || "#000000"; // Fallback color if not predefined
+            let defaultColor = defaultIntegrationColors[type] || "#000000"; // Fallback color if not predefined
 
-        typeDiv.append('input')
-            .attr('type', 'color')
-            .attr('id', 'color-' + type)
-            .attr('value', defaultColor)
-            .on('input', function() {
-                // When a color is picked, update the colors and redraw the graph
-                defaultIntegrationColors[type] = this.value;
-                drawGraph();
-            });
+            typeDiv.append('input')
+                .attr('type', 'color')
+                .attr('id', 'color-' + type)
+                .attr('value', defaultColor)
+                .on('input', function() {
+                    // When a color is picked, update the colors and redraw the graph
+                    defaultIntegrationColors[type] = this.value;
+                    drawGraph();
+                });
+        }
     });
 }
 
