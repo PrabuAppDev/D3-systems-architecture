@@ -81,23 +81,40 @@ function uniqueCapabilities(data, column) {
     return Array.from(uniqueCapSet);
 }
 
+function uniqueOrgLevels(data) {
+    const orgLevel1Set = new Set();
+    const orgLevel2Set = new Set();
 
+    data.forEach(d => {
+        // Use explicit CSV header names for mapping
+        orgLevel1Set.add(d['Consumer-Org-Level1']);
+        orgLevel1Set.add(d['Producer-Org-Level1']);
+        orgLevel2Set.add(d['Consumer-Org-Level2']);
+        orgLevel2Set.add(d['Producer-Org-Level2']);
+    });
+
+    return {
+        orgLevel1: Array.from(orgLevel1Set).filter(Boolean), // Remove null/undefined values
+        orgLevel2: Array.from(orgLevel2Set).filter(Boolean) // Remove null/undefined values
+    };
+}
 
 // This function initializes filters and populates them with unique values from the data.
 function initializeFilters(data) {
-    // Updated filterColumns array with the new column names
-    const filterColumns = ['Lifecycle-Status', 'Capabilities-Supported'];
+    const orgLevels = uniqueOrgLevels(data);
+    populateFilter('#orgLevel1Filter', orgLevels.orgLevel1);
+    populateFilter('#orgLevel2Filter', orgLevels.orgLevel2);
 
-    filterColumns.forEach(function(col) {
-        // Choose the correct unique function based on the column
+    const filterColumns = ['Lifecycle-Status', 'Capabilities-Supported'];
+    filterColumns.forEach(col => {
         const unique = (col === 'Capabilities-Supported') ? uniqueCapabilities(data, col) : uniqueValues(data, col);
-        console.log('Unique values for', col, unique); // Debug: Log the unique values
-        populateFilter('#' + col.toLowerCase().replace(/-/g, '') + 'Filter', unique); // Populate the filter dropdown
+        populateFilter('#' + col.toLowerCase().replace(/-/g, '') + 'Filter', unique.filter(Boolean));
     });
 
-    // Add event listeners for the filter dropdowns
     d3.select('#lifecyclestatusFilter').on("change", () => applyFilters(data));
     d3.select('#capabilitiessupportedFilter').on("change", () => applyFilters(data));
+    d3.select('#orgLevel1Filter').on("change", () => applyFilters(data));
+    d3.select('#orgLevel2Filter').on("change", () => applyFilters(data));
 }
 
 function uniqueValues(data, column) {
@@ -142,12 +159,15 @@ function applyFilters(data) {
     let selectedLifecycle = Array.from(d3.select('#lifecyclestatusFilter').node().selectedOptions).map(d => d.value);
     let selectedCapability = Array.from(d3.select('#capabilitiessupportedFilter').node().selectedOptions).map(d => d.value);
 
-    let filteredData = filterData(data, selectedLifecycle, selectedCapability);
+    let selectedOrgLevel1 = Array.from(d3.select('#orgLevel1Filter').node().selectedOptions).map(d => d.value);
+    let selectedOrgLevel2 = Array.from(d3.select('#orgLevel2Filter').node().selectedOptions).map(d => d.value);
+
+    let filteredData = filterData(data, selectedLifecycle, selectedCapability, selectedOrgLevel1, selectedOrgLevel2);
     processData(filteredData);
     drawGraph();
 }
 
-function filterData(data, selectedLifecycle, selectedCapability) {
+function filterData(data, selectedLifecycle, selectedCapability, selectedOrgLevel1, selectedOrgLevel2) {
     return data.filter(d => {
         const matchesLifecycle = selectedLifecycle.includes(d['Lifecycle-Status']) || selectedLifecycle.length === 0;
         let capabilityList;
@@ -156,8 +176,10 @@ function filterData(data, selectedLifecycle, selectedCapability) {
         } catch {
             capabilityList = d['Capabilities-Supported'].split(',').map(c => c.trim());
         }
-        const matchesCapability = selectedCapability.some(cap => capabilityList.includes(cap)) || selectedCapability.length === 0;
-        return matchesLifecycle && matchesCapability;
+        const matchesCapability = capabilityList.some(cap => selectedCapability.includes(cap)) || selectedCapability.length === 0;
+        const matchesOrgLevel1 = selectedOrgLevel1.includes(d['Consumer-Org-Level1']) || selectedOrgLevel1.includes(d['Producer-Org-Level1']) || selectedOrgLevel1.length === 0;
+        const matchesOrgLevel2 = selectedOrgLevel2.includes(d['Consumer-Org-Level2']) || selectedOrgLevel2.includes(d['Producer-Org-Level2']) || selectedOrgLevel2.length === 0;
+        return matchesLifecycle && matchesCapability && matchesOrgLevel1 && matchesOrgLevel2;
     });
 }
 
