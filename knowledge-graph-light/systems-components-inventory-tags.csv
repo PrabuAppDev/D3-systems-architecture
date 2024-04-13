@@ -4,7 +4,7 @@ Point-of-Sale-Services,Microservice-SpringBoot,Cloud,Point-of-Sale-Services,Micr
 Point-of-Sale-Services,Microservice-SpringBoot,Cloud,GIS-AddressValidation,Thirdparty-Service,SaaS,REST-API,Active,"[""Point-of-Sale"",""CRM""]"
 Point-of-Sale-Services,Microservice-SpringBoot,Cloud,Point-of-Sale-Persistence,RDBMS-Oracle,Datacenter-premises,ORM-JDBC,Active,"[""Point-of-Sale"",""CRM""]"
 Analytical-Data-Store,Databricks,Cloud,Point-of-Sale-Persistence,RDBMS-Oracle,Datacenter-premises,CDC,Active,"[""Point-of-Sale"",""CRM""]"
-Analytical-Data-Store,Databricks,Cloud,Customer-Data-Management,SaaS,SaaS,ETL,Active,"[""Point-of-Sale"",""CRM""]"
+Analytical-Data-Store,Databricks,Cloud,Customer-Data-Management,SaaS,SaaS,Batch,Active,"[""Point-of-Sale"",""CRM""]"
 External-Payment-Gateway,Thirdparty-Service,SaaS,Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,Cloud,REST-API,Active,"[""Point-of-Sale"",""CRM""]"
 External-Payment-Gateway,Thirdparty-Service,SaaS,Point-of-Sale-WebApp-UI,SinglePageWebApp-UI-Angular,Cloud,SOAP Webservice,Active,"[""Point-of-Sale"",""CRM""]"
 External-Payment-Gateway,Thirdparty-Service,SaaS,Membership-Services,Microservice-SpringBoot,Cloud,REST-API,Active,"[""CRM"", ""Subscription""]"
