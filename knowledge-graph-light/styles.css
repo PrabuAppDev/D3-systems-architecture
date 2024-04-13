@@ -103,3 +103,10 @@ body {
     margin-left: 0; /* Reset margin since it's no longer needed */
   }
 }
+
+select[multiple] {
+  height: auto;
+  overflow-y: auto;
+  width: 200px;
+  border: 1px solid #ccc;
+}
