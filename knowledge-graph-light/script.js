@@ -127,43 +127,36 @@ function uniqueValues(data, column) {
 
 
 // This function populates a filter dropdown with options from the values array.
+// This function populates a filter dropdown with options from the values array.
 function populateFilter(selector, values) {
-    let select = d3.select(selector);
+    let select = d3.select(selector).attr('multiple', 'multiple'); // Enable multiple selection
     select.selectAll('option').remove(); // Clear any existing options
-    select.selectAll('option') // This ensures an empty selection to bind the data properly
-        .data(values, function(d) { return d; }) // Binding data with a key function for tracking
+    select.selectAll('option')
+        .data(values)
         .enter()
         .append('option')
-        .attr('value', function(d) { return d; })
-        .text(function(d) { return d; });
-
-    // Debug: Log to check what is being appended
-    console.log('Options appended for selector:', selector, values);
+        .attr('value', d => d)
+        .text(d => d);
 }
-
 function applyFilters(data) {
-    // Get selected filter values
-    let selectedLifecycle = d3.select('#lifecyclestatusFilter').node().value;
-    let selectedCapability = d3.select('#capabilitiessupportedFilter').node().value;
+    let selectedLifecycle = Array.from(d3.select('#lifecyclestatusFilter').node().selectedOptions).map(d => d.value);
+    let selectedCapability = Array.from(d3.select('#capabilitiessupportedFilter').node().selectedOptions).map(d => d.value);
 
-    // Filter data based on selection
     let filteredData = filterData(data, selectedLifecycle, selectedCapability);
-
-    // Re-process and redraw graph
     processData(filteredData);
     drawGraph();
 }
 
 function filterData(data, selectedLifecycle, selectedCapability) {
     return data.filter(d => {
-        const matchesLifecycle = (d['Lifecycle-Status'] === selectedLifecycle || selectedLifecycle === "");
+        const matchesLifecycle = selectedLifecycle.includes(d['Lifecycle-Status']) || selectedLifecycle.length === 0;
         let capabilityList;
         try {
             capabilityList = JSON.parse(d['Capabilities-Supported']);
         } catch {
             capabilityList = d['Capabilities-Supported'].split(',').map(c => c.trim());
         }
-        const matchesCapability = capabilityList.includes(selectedCapability) || selectedCapability === "";
+        const matchesCapability = selectedCapability.some(cap => capabilityList.includes(cap)) || selectedCapability.length === 0;
         return matchesLifecycle && matchesCapability;
     });
 }
