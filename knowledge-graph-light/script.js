@@ -31,7 +31,7 @@ d3.csv("systems-components-inventory-tags.csv").then(data => {
 });
 
 function processData(data) {
-    console.log("Processing data:", data);  
+    // console.log("Processing data:", data);  
     // Reset nodes and links before processing the new filtered data
     nodes = [];
     links = []; 
@@ -138,7 +138,7 @@ function uniqueValues(data, column) {
     }
     // Get unique values, filter out any falsy values like empty strings
     const unique = [...new Set(allValues)].filter(Boolean);
-    console.log(`Unique values for ${column}:`, unique); // Log the unique values to the console
+    // console.log(`Unique values for ${column}:`, unique); // Log the unique values to the console
     return unique;
 }
 
@@ -185,22 +185,23 @@ function filterData(data, selectedLifecycle, selectedCapability, selectedOrgLeve
 
 // drawGraph function definition
 function drawGraph() {
-    console.log("Drawing graph with nodes:", nodes, "and links:", links);
     // Clear the previous graph
     svg.selectAll("*").remove();
 
     // Rebind the simulation nodes and links with the filtered data
     simulation.nodes(nodes).on("tick", ticked); // Make sure 'nodes' contains the filtered nodes
     simulation.force("link").links(links); // Make sure 'links' contains the filtered links
-    
+
     // Define the lines (links)
     const link = svg.append("g")
                     .attr("class", "links")
-                    .selectAll("line")
+                    .selectAll("path")
                     .data(links)
-                    .enter().append("line")
+                    .enter().append("path")
+                    .attr("class", "link-path")
                     .style("stroke", "#999")
                     .style("stroke-width", "2px")
+                    .style("fill", "none")
                     .on('mouseover', edgeMouseover)
                     .on('mouseout', mouseout); // Add mouseout event
 
@@ -230,19 +231,24 @@ function drawGraph() {
                           .style("fill", "#333");
 
     function ticked() {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
+        // Adjust link path to create orthogonal links
+        link.attr("d", d => {
+            const x1 = d.source.x;
+            const y1 = d.source.y;
+            const x2 = d.target.x;
+            const y2 = d.target.y;
 
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
+            // Calculate midpoint
+            const midX = x1 + (x2 - x1) / 2;
+            const midY = y1 + (y2 - y1) / 2;
 
-        nodeLabels
-            .attr("x", d => d.x)
-            .attr("y", d => d.y - 10);
+            // Return path in "M L L L" format
+            return `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
+        });
+
+        node.attr("cx", d => d.x).attr("cy", d => d.y);
+
+        nodeLabels.attr("x", d => d.x).attr("y", d => d.y - 10);
     }
 
     function dragstarted(event, d) {
@@ -271,7 +277,7 @@ function drawGraph() {
                .style("left", (event.pageX) + "px")
                .style("top", (event.pageY - 28) + "px");
     }
-    
+
     function edgeMouseover(event, d) {
         tooltip.transition()
                .duration(200)
@@ -280,13 +286,13 @@ function drawGraph() {
                .style("left", (event.pageX) + "px")
                .style("top", (event.pageY - 28) + "px");
     }
-    
+
     function mouseout() {
         tooltip.transition()
                .duration(500)
                .style("opacity", 0);
     }
-    
+
     // Add tooltip to body
     tooltip.html("")
         .style("left", "0px")
@@ -295,7 +301,6 @@ function drawGraph() {
 
     // Generate HTML content for the tooltip
     function edgeTooltipHTML(d) {
-        // Construct HTML string for tooltip
         return `<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                     <tr><th>Integration-Type</th><th>Lifecycle</th><th>Capability</th></tr>
                     <tr>
@@ -307,30 +312,23 @@ function drawGraph() {
     }
 
     function nodeTooltipHTML(d) {
-        console.log("inside nodeTooltipHTML()")
-        console.log(d);
-        return  `<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-        <tr><th>Component/System</th><th>Type</th></tr>
-        <tr>
-            <td>${d.id}</td>
-            <td>${d.type}</td>
-        </tr>
-    </table>`;
+        return `<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                    <tr><th>Component/System</th><th>Type</th></tr>
+                    <tr>
+                        <td>${d.id}</td>
+                        <td>${d.type}</td>
+                    </tr>
+                </table>`;
     }
-    
-    // Update the style for links with the color for the integration type
-    link.style("stroke", d => {
-        console.log(`Applying color for type ${d.type}: `, getColorForType(d.type));
-        return getColorForType(d.type);
-    });
 
-    console.log("Color for REST-API: ", getColorForType("REST-API"));
+    // Update the style for links with the color for the integration type
+    link.style("stroke", d => getColorForType(d.type));
+
     // Change the node color from green to blue
     node.style("fill", "#0000ff"); // Set the fill color to blue
 
     // Restart the simulation
-    simulation.alpha(1).restart();    
-
+    simulation.alpha(1).restart();
 }
 
 function resetFilters() {
@@ -370,6 +368,6 @@ function populateColorConfig(integrationTypes) {
 // Function to get the selected color for an integration type
 function getColorForType(type) {
     let colorInput = d3.select('#color-' + type).node();
-    console.log('Looking for: ', '#color-' + type, ', Found: ', colorInput, ', Value: ', colorInput ? colorInput.value : 'none');
+    // console.log('Looking for: ', '#color-' + type, ', Found: ', colorInput, ', Value: ', colorInput ? colorInput.value : 'none');
     return colorInput ? colorInput.value : '#000000'; // Default color if not set
 }
