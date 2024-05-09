@@ -7,7 +7,15 @@ const svg = d3.select("#graph"),
 const defaultIntegrationColors = {
         "REST-API": "#00ff00", // Green
         "Batch": "#ff0000", // Red
-        };
+};
+
+// Track whether to use orthogonal paths
+let useOrthogonalPaths = true;
+
+document.getElementById("orthogonalToggle").addEventListener("change", function() {
+    useOrthogonalPaths = this.checked;
+    drawGraph();
+});
 
 // Define simulation with forces
 let simulation = d3.forceSimulation()
@@ -195,15 +203,15 @@ function drawGraph() {
     // Define the lines (links)
     const link = svg.append("g")
                     .attr("class", "links")
-                    .selectAll("path")
+                    .selectAll(useOrthogonalPaths ? "path" : "line")
                     .data(links)
-                    .enter().append("path")
+                    .enter().append(useOrthogonalPaths ? "path" : "line")
                     .attr("class", "link-path")
                     .style("stroke", "#999")
                     .style("stroke-width", "2px")
                     .style("fill", "none")
                     .on('mouseover', edgeMouseover)
-                    .on('mouseout', mouseout); // Add mouseout event
+                    .on('mouseout', mouseout);
 
     // Define the nodes
     const node = svg.append("g")
@@ -231,23 +239,26 @@ function drawGraph() {
                           .style("fill", "#333");
 
     function ticked() {
-        // Adjust link path to create orthogonal links
-        link.attr("d", d => {
-            const x1 = d.source.x;
-            const y1 = d.source.y;
-            const x2 = d.target.x;
-            const y2 = d.target.y;
+        if (useOrthogonalPaths) {
+            link.attr("d", d => {
+                const x1 = d.source.x;
+                const y1 = d.source.y;
+                const x2 = d.target.x;
+                const y2 = d.target.y;
 
-            // Calculate midpoint
-            const midX = x1 + (x2 - x1) / 2;
-            const midY = y1 + (y2 - y1) / 2;
+                const midX = x1 + (x2 - x1) / 2;
+                const midY = y1 + (y2 - y1) / 2;
 
-            // Return path in "M L L L" format
-            return `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
-        });
+                return `M${x1},${y1} L${midX},${y1} L${midX},${y2} L${x2},${y2}`;
+            });
+        } else {
+            link.attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+        }
 
         node.attr("cx", d => d.x).attr("cy", d => d.y);
-
         nodeLabels.attr("x", d => d.x).attr("y", d => d.y - 10);
     }
 
